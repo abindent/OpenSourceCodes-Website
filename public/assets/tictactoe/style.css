@@ -1,0 +1,507 @@
+/* Modern Tic-Tac-Toe Styles */
+:root {
+  --primary-color: #4f46e5;
+  --primary-dark: #4338ca;
+  --primary-light: #818cf8;
+  --secondary-color: #f43f5e; /* Color for 'O' */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-600: #4b5563;
+  --gray-800: #1f2937;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 1rem;
+  --strike-line-thickness: 10px; /* Define strike line thickness as a variable */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Montserrat", sans-serif;
+  background: linear-gradient(120deg, #e0f2fe, #dbeafe);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--gray-800);
+  line-height: 1.6;
+  padding: 1rem;
+}
+
+.container {
+  width: 100%;
+  max-width: 450px;
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  margin: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header styles */
+.game-header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 1.5rem 1.5rem 1rem;
+  text-align: center;
+}
+
+h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.03em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+h1::after {
+  content: "";
+  display: block;
+  width: 50px;
+  height: 3px;
+  background-color: white;
+  margin: 0.5rem auto 0;
+  border-radius: 2px;
+}
+
+.controls-wrapper {
+  padding: 0.75rem 0;
+}
+
+.status-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+#status {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: var(--border-radius-md);
+  background-color: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(5px);
+  box-shadow: var(--shadow-sm);
+  min-width: 200px;
+  text-align: center;
+}
+
+.mode-selection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mode-selection label {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+select {
+  padding: 0.4rem 0.75rem;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  background-color: rgba(255, 255, 255, 0.9);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--gray-800);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+select:hover,
+select:focus {
+  background-color: white;
+  box-shadow: var(--shadow-md);
+  outline: none;
+}
+
+/* Board styles */
+.board-container {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+}
+
+.board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 10px; /* Gap between cells */
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  max-width: 350px;
+  background-color: var(--gray-200); /* Background of the grid itself */
+  border-radius: 12px; /* Rounded corners for the board */
+  padding: 10px; /* Padding around the cells, inside the board */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.cell {
+  position: relative; /* Important for absolute positioning of pseudo-elements */
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-color: white; /* Background of individual cells */
+  border-radius: 8px; /* Rounded corners for cells */
+  display: flex; /* Helps center content if not using pseudo-elements exclusively */
+  justify-content: center; /* Helps center content */
+  align-items: center; /* Helps center content */
+  font-size: 3rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  user-select: none;
+  color: var(--gray-800);
+}
+
+.cell:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  background-color: var(--gray-50);
+}
+
+.cell:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Styling for X */
+.cell.X {
+  color: var(--primary-color);
+  font-size: 0;
+}
+
+.cell.X::before,
+.cell.X::after {
+  content: "";
+  position: absolute;
+  width: 70%;
+  height: 0.45rem;
+  border-radius: 0.2rem;
+  background-color: currentColor;
+  transition: all 0.3s ease;
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+}
+
+.cell.X::before {
+  transform: translate(-50%, -50%) rotate(45deg); /* Adjust for centering then rotate */
+}
+
+.cell.X::after {
+  transform: translate(-50%, -50%) rotate(-45deg); /* Adjust for centering then rotate */
+}
+
+/* Styling for O */
+.cell.O {
+  color: var(--secondary-color);
+  font-size: 0px;
+}
+
+.cell.O::before {
+  content: "";
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  border: 0.5rem solid currentColor;
+  background-color: transparent;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  top: 50%; /* Perfect vertical centering */
+  left: 50%; /* Perfect horizontal centering */
+  transform: translate(-50%, -50%); /* Adjust position to true center */
+}
+
+/* Game over state */
+.game-over .cell {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* AI thinking state */
+.board.ai-thinking .cell {
+  pointer-events: none;
+}
+
+.board.ai-thinking::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(3px);
+  border-radius: 12px;
+  z-index: 20;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Strike line styles */
+#strike-line {
+  position: absolute;
+  background: linear-gradient(
+    90deg,
+    var(--primary-color),
+    var(--primary-light)
+  );
+  height: var(--strike-line-thickness);
+  border-radius: calc(var(--strike-line-thickness) / 2); /* Make ends rounded */
+  display: none;
+  z-index: 10;
+  box-shadow: 0 0 10px rgba(79, 70, 229, 0.4);
+  /* Default transform-origin is good for horizontal lines if not rotating much */
+}
+
+/* Horizontal Strike Lines */
+.strike-row-0 {
+  top: calc(16.67% - (var(--strike-line-thickness) / 2));
+  left: 5%;
+  width: 90%;
+  transform-origin: center left;
+  display: block;
+}
+.strike-row-1 {
+  top: calc(50% - (var(--strike-line-thickness) / 2));
+  left: 5%;
+  width: 90%;
+  transform-origin: center left;
+  display: block;
+}
+.strike-row-2 {
+  top: calc(83.33% - (var(--strike-line-thickness) / 2));
+  left: 5%;
+  width: 90%;
+  transform-origin: center left;
+  display: block;
+}
+
+/* Vertical Strike Lines */
+.strike-col-0 {
+  top: 5%;
+  left: calc(16.67% - (var(--strike-line-thickness) / 2));
+  width: var(--strike-line-thickness);
+  height: 90%!important; /* Important to override any other height settings */
+  transform-origin: center center; /* Better for vertical lines if rotated, though not strictly needed here */
+  display: block;
+}
+.strike-col-1 {
+  top: 5%;
+  left: calc(50% - (var(--strike-line-thickness) / 2));
+  width: var(--strike-line-thickness);
+  height: 90%!important; /* Important to override any other height settings */
+  transform-origin: center center;
+  display: block;
+}
+.strike-col-2 {
+  top: 5%;
+  left: calc(83.33% - (var(--strike-line-thickness) / 2));
+  width: var(--strike-line-thickness);
+  height: 90%!important; /* Important to override any other height settings */
+  transform-origin: center center;
+  display: block;
+}
+
+/* Diagonal Strike Lines */
+.strike-diag-0 {
+  /* Top-left to bottom-right */
+  top: 10%; /* Adjusted for better visual centering of diagonal */
+  left: 10%;
+  width: 115%; /* Adjusted width for diagonal */
+  /* height is var(--strike-line-thickness) */
+  transform: rotate(45deg);
+  transform-origin: top left;
+  display: block;
+}
+
+.strike-diag-1 {
+  /* Top-right to bottom-left */
+  top: 10%; /* Adjusted for better visual centering of diagonal */
+  right: 10%; /* Use right instead of left for this diagonal */
+  left: auto; /* Reset left */
+  width: 115%; /* Adjusted width for diagonal */
+  /* height is var(--strike-line-thickness) */
+  transform: rotate(-45deg); /* Or 135deg, depending on desired visual */
+  transform-origin: top right;
+  display: block;
+}
+
+/* Reset button */
+#resetButton {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  padding: 0.85rem 2.5rem;
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0.5rem auto 1.5rem;
+  display: block;
+  box-shadow: var(--shadow-md);
+}
+
+#resetButton:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+#resetButton:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Footer */
+.game-footer {
+  text-align: center;
+  padding: 1rem;
+  background-color: var(--gray-100);
+  border-top: 1px solid var(--gray-200);
+  color: var(--gray-600);
+  font-size: 0.9rem;
+}
+
+/* Responsive Styles */
+@media (max-width: 480px) {
+  .container {
+    margin: 0.5rem;
+    border-radius: var(--border-radius-md);
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  #status {
+    font-size: 1.05rem;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .status-area {
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  .mode-selection {
+    width: 100%;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .mode-selection label {
+    font-size: 0.9rem;
+  }
+  select {
+    font-size: 0.9rem;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .board-container {
+    padding: 1rem;
+  }
+
+  .board {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .cell {
+    border-radius: 6px;
+  }
+
+  .cell.X::before,
+  .cell.X::after {
+    height: 0.4rem;
+  }
+  .cell.O::before {
+    border-width: 0.4rem;
+  }
+
+  #resetButton {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    width: calc(100% - 2rem);
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .game-header {
+    padding: 1rem 1rem 0.75rem;
+  }
+
+  /* Adjust strike line thickness and positioning for smaller screens if needed */
+  :root {
+    --strike-line-thickness-mobile: 8px;
+  }
+  #strike-line {
+    height: var(--strike-line-thickness-mobile);
+    border-radius: calc(var(--strike-line-thickness-mobile) / 2);
+  }
+  .strike-row-0 {
+    top: calc(16.67% - (var(--strike-line-thickness-mobile) / 2));
+  }
+  .strike-row-1 {
+    top: calc(50% - (var(--strike-line-thickness-mobile) / 2));
+  }
+  .strike-row-2 {
+    top: calc(83.33% - (var(--strike-line-thickness-mobile) / 2));
+  }
+  .strike-col-0 {
+    left: calc(16.67% - (var(--strike-line-thickness-mobile) / 2));
+    width: var(--strike-line-thickness-mobile);
+  }
+  .strike-col-1 {
+    left: calc(50% - (var(--strike-line-thickness-mobile) / 2));
+    width: var(--strike-line-thickness-mobile);
+  }
+  .strike-col-2 {
+    left: calc(83.33% - (var(--strike-line-thickness-mobile) / 2));
+    width: var(--strike-line-thickness-mobile);
+  }
+
+  .strike-diag-0,
+  .strike-diag-1 {
+    height: var(--strike-line-thickness-mobile);
+    /* Widths might also need slight adjustment if they look off */
+  }
+}

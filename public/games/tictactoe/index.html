@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe AI</title>
+    <link rel="stylesheet" href="/assets/tictactoe/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="game-header">
+            <h1>Tic-Tac-Toe</h1>
+            <div class="controls-wrapper">
+                <div class="status-area">
+                    <div id="status">Player X's turn</div>
+                    <div class="mode-selection">
+                        <label for="gameMode">Opponent:</label>
+                        <select id="gameMode">
+                            <option value="human">Human</option>
+                            <option value="ai" selected>Computer</option>
+                        </select>
+                    </div>
+                    </div>
+            </div>
+        </div>
+        
+        <div class="board-container">
+            <div class="board">
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
+                <div id="strike-line"></div>
+            </div>
+        </div>
+        
+        <button id="resetButton">New Game</button>
+        
+        <div class="game-footer">
+            <p class="signature">Modern Tic-Tac-Toe with AI</p>
+        </div>
+    </div>
+    <script src="/assets/tictactoe/script.js"></script>
+</body>
+</html>

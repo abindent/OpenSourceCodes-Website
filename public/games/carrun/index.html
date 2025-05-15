@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Game | OpenSourceCodes</title>
+    <script src="/assets/libs/tailwindcss/index.js"></script>
+    <script src="/assets/libs/jquery/index.js"></script>
+    <script src="/assets/libs/tone/index.js"></script>
+    <link href="/assets/font/press_start_font.css" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            background-image: url("/assets/cargame/bg.jpg");
+            background-size: cover;
+            background-position: center;
+            color: #ecf0f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            touch-action: none;
+        }
+
+        .game-container {
+            position: relative;
+            width: 95vw;
+            max-width: 450px;
+            height: 90vh;
+            background-color: #34495e;
+            overflow: hidden;
+            border: 5px solid #ecf0f1;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .road-line {
+            width: 10px;
+            height: 60px;
+            background-color: white;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 5px;
+        }
+
+        .car,
+        .enemy {
+            width: 40px;
+            height: 80px;
+            position: absolute;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            user-select: none;
+            /* background-color: rgba(255, 0, 0, 0.5); */
+            /* Debug fallback */
+        }
+
+        .start-screen,
+        .end-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 10;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .start-screen p,
+        .end-screen p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .start-button,
+        .restart-button {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .start-button:hover,
+        .restart-button:hover {
+            background-color: #c0392b;
+        }
+
+        .score-board,
+        .high-score-board {
+            position: absolute;
+            top: 15px;
+            background-color: rgba(44, 62, 80, 0.8);
+            color: #ecf0f1;
+            padding: 10px 15px;
+            font-size: 0.625rem;
+            border-radius: 5px;
+            z-index: 5;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .score-board {
+            left: 15px;
+        }
+
+        .score-card-container {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: space-evenly;
+            width: calc(100% - 30px);
+        }
+
+        /* Adjusted for level display */
+        .high-score-board {
+            right: 15px;
+        }
+
+        .touch-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 15;
+        }
+
+        .touch-button {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(236, 240, 241, 0.5);
+            border: 2px solid #bdc3c7;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: #2c3e50;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .touch-button:active {
+            background-color: rgba(189, 195, 199, 0.7);
+        }
+
+        .mute-button {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background-color: rgba(44, 62, 80, 0.8);
+            color: #ecf0f1;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 15;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="score-card-container">
+            <div class="score-board" id="scoreBoard">Score: 0 Lvl: 1</div>
+            <div class="high-score-board" id="highScoreBoard">High Score: 0</div>
+        </div>
+
+        <div class="start-screen" id="startScreen">
+            <h1 class="text-3xl mb-4">Image Car Dodger</h1>
+            <p class="text-lg">Use Arrow Keys or Touch Controls to Move.<br>Avoid the oncoming traffic! Difficulty
+                Increases!</p>
+            <button class="start-button" id="startButton">Start Game</button>
+        </div>
+
+        <div class="end-screen hidden" id="endScreen">
+            <h1 class="text-3xl mb-4 text-red-500">Game Over!</h1>
+            <p class="text-lg" id="finalScore">Your Score: 0</p>
+            <p class="text-lg">Level Reached: <span id="finalLevel">1</span></p>
+            <p class="text-lg hidden text-yellow-400" id="newHighScoreMsg">New High Score!</p>
+            <button class="restart-button" id="restartButton">Restart Game</button>
+        </div>
+
+        <div class="game-area absolute top-0 left-0 w-full h-full" id="gameArea">
+        </div>
+
+        <div class="touch-controls" id="touchControls">
+            <button class="touch-button" id="touchLeft">◀</button>
+            <button class="touch-button" id="touchRight">▶</button>
+        </div>
+
+        <button class="mute-button" id="muteButton">🔊</button>
+    </div>
+
+    <script>
+        // Use document.ready for proper initialization
+        $(document).ready(() => {
+            // --- DOM Elements (using jQuery for conciseness) ---
+            const $game = $('#gameContainer');
+            const $gameArea = $('#gameArea');
+            const $scoreBoard = $('#scoreBoard');
+            const $highScoreBoard = $('#highScoreBoard');
+            const $startScreen = $('#startScreen');
+            const $endScreen = $('#endScreen');
+            const $finalScore = $('#finalScore');
+            const $finalLevel = $('#finalLevel');
+            const $newHighScoreMsg = $('#newHighScoreMsg');
+            const $muteButton = $('#muteButton');
+            const $touchControls = {
+                left: $('#touchLeft'),
+                right: $('#touchRight')
+            };
+
+            // --- Game State ---
+            const player = {
+                speed: 2, // Player's own movement speed, kept constant for consistent control
+                score: 0,
+                start: false,
+                x: 0,
+                y: 0,
+                width: 40,
+                height: 80,
+                element: null
+            };
+
+            const game = {
+                keys: { ArrowLeft: false, ArrowRight: false },
+                initialSpeed: 3.5, // Base speed for game start
+                speed: 3.5,       // Current dynamic game speed (lines, base for enemy speed calculation)
+                lineSpeed: 5,     // Will be derived from game.speed
+                enemyBaseSpeed: 3.5, // Base speed for enemies, increases with levels
+                scoreInterval: null,
+                animationId: null,
+                highScore: localStorage.getItem('carGameHighScore') || 0,
+                isMuted: false,
+                collisionPadding: 3.1,
+                enemyWidth: 40,
+                enemyHeight: 80,
+                requiredGap: 6, // Minimum pixels between cars horizontally
+                numberOfLines: 6,
+                numberOfEnemies: 4, // Initial number of enemy elements
+                assets: {
+                    playerCar: '/assets/cargame/car.png',
+                    enemyCars: ['/assets/cargame/enemy_red.png', '/assets/cargame/enemy_yellow.png', '/assets/cargame/enemy_white.png', '/assets/cargame/enemy_green.png'] // Corrected extensions
+                },
+                sound: {
+                    crash: null,
+                    engine: null
+                },
+                // Level and difficulty settings
+                level: 1,
+                levelScoreMultiplier: 200, // Score needed to advance (e.g., L1->L2 at 200, L2->L3 at 400)
+                currentLevelScoreTarget: 200,
+                maxLevel: 15,
+                speedIncrementPerLevel: 0.25,     // How much game.speed increases per level
+                enemySpeedIncrementPerLevel: 0.25, // How much game.enemyBaseSpeed increases per level
+                verticalSpawnReductionPerLevel: 15 // How much the random vertical spawn range reduces
+            };
+
+            // --- Sound System with Tone.js ---
+            const initSounds = () => {
+                if (typeof Tone === 'undefined') return;
+                if (!game.sound.crash) {
+                    game.sound.crash = new Tone.NoiseSynth({
+                        noise: { type: 'white' },
+                        envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 }
+                    }).toDestination();
+                }
+                if (!game.sound.engine) {
+                    game.sound.engine = new Tone.Loop(time => {
+                        const synth = new Tone.Synth({
+                            oscillator: { type: "sine" },
+                            envelope: { attack: 0.01, decay: 0.1, sustain: 0.05, release: 0.1 }
+                        }).toDestination();
+                        const baseFreq = 80;
+                        const currentSpeedFactor = typeof game.speed === 'number' ? game.speed : 4;
+                        synth.triggerAttackRelease(baseFreq + currentSpeedFactor * 5, "8n", time);
+                        setTimeout(() => synth.dispose(), 200);
+                    }, "4n");
+                }
+            };
+
+            const playCrashSound = () => {
+                if (typeof Tone !== 'undefined' && game.sound.crash && !game.isMuted) {
+                    try { game.sound.crash.triggerAttackRelease("0.1"); } catch (e) { console.error("Error playing crash sound:", e); }
+                }
+            };
+
+            const toggleMute = () => {
+                if (typeof Tone === 'undefined') return;
+                game.isMuted = !game.isMuted;
+                Tone.Destination.mute = game.isMuted;
+                $muteButton.text(game.isMuted ? '🔇' : '🔊');
+                if (game.sound.engine) {
+                    if (game.isMuted || !player.start) game.sound.engine.stop();
+                    else if (player.start) {
+                        if (Tone.Transport.state !== "started") Tone.Transport.start();
+                        game.sound.engine.start(0);
+                    }
+                }
+            };
+
+            // --- Event Handlers ---
+            const setupEventListeners = () => {
+                $('#startButton, #restartButton').on('click', startGame);
+                $muteButton.on('click', toggleMute);
+                $(document).on('keydown', e => { if (game.keys.hasOwnProperty(e.key)) { e.preventDefault(); game.keys[e.key] = true; } });
+                $(document).on('keyup', e => { if (game.keys.hasOwnProperty(e.key)) { e.preventDefault(); game.keys[e.key] = false; } });
+                $touchControls.left.on({ 'pointerdown': e => { e.preventDefault(); game.keys.ArrowLeft = true; }, 'pointerup pointerleave': e => { if (e.type === 'pointerup') e.preventDefault(); game.keys.ArrowLeft = false; } });
+                $touchControls.right.on({ 'pointerdown': e => { e.preventDefault(); game.keys.ArrowRight = true; }, 'pointerup pointerleave': e => { if (e.type === 'pointerup') e.preventDefault(); game.keys.ArrowRight = false; } });
+            };
+
+            // --- Collision Detection ---
+            const isCollision = (a, b) => {
+                if (!a || !b) return false;
+                const aRect = $(a)[0].getBoundingClientRect(); const bRect = $(b)[0].getBoundingClientRect();
+                if (aRect.width === 0 || aRect.height === 0 || bRect.width === 0 || bRect.height === 0) return false;
+                const p = game.collisionPadding;
+                const aTop = aRect.top + p, aBottom = aRect.bottom - p, aLeft = aRect.left + p, aRight = aRect.right - p;
+                const bTop = bRect.top + p, bBottom = bRect.bottom - p, bLeft = bRect.left + p, bRight = bRect.right - p;
+                if (aBottom <= aTop || aRight <= aLeft || bBottom <= bTop || bRight <= bLeft) return false;
+                return !((aBottom < bTop) || (aTop > bBottom) || (aRight < bLeft) || (aLeft > bRight));
+            };
+
+            // --- Game Element Movement ---
+            const moveLines = () => {
+                const containerHeight = $game.height();
+                $('.road-line').each((_, line) => {
+                    const $line = $(line);
+                    let currentTop = parseFloat($line.css('top')) || 0;
+                    if (currentTop > containerHeight) currentTop = -$line.height() - 20;
+                    $line.css('top', (currentTop + game.lineSpeed) + 'px'); // Use game.lineSpeed
+                });
+            };
+
+            const moveEnemies = () => {
+                const containerHeight = $game.height();
+                const containerWidth = $game.width();
+                const borderBuffer = 10; // Keep cars from hitting exact edge
+                const maxLeftPosition = containerWidth - game.enemyWidth - borderBuffer;
+
+                const currentEnemyPositions = [];
+                $('.enemy').each((_, elem) => {
+                    const $elem = $(elem);
+                    const topPos = parseFloat($elem.css('top'));
+                    if (!isNaN(topPos) && topPos > -game.enemyHeight * 2 && topPos < containerHeight + game.enemyHeight) { // Include cars just off bottom
+                        currentEnemyPositions.push({
+                            left: parseFloat($elem.css('left')) || 0,
+                            // right: (parseFloat($elem.css('left')) || 0) + game.enemyWidth, // Not strictly needed for Math.abs check
+                            element: elem
+                        });
+                    }
+                });
+
+                $('.enemy').each((_, enemy) => {
+                    const $enemy = $(enemy);
+                    if (player.element && isCollision(player.element, enemy)) { endGame(); return; }
+
+                    let currentTop = parseFloat($enemy.css('top'));
+                    if (isNaN(currentTop)) currentTop = -game.enemyHeight;
+
+                    if (currentTop > containerHeight) {
+                        // --- Respawn Logic ---
+                        let verticalRespawnRandomRange = Math.max(50, 300 - (game.level - 1) * game.verticalSpawnReductionPerLevel);
+                        currentTop = -game.enemyHeight - (Math.random() * verticalRespawnRandomRange);
+
+
+                        let newLeft;
+                        let attempts = 0; const maxAttempts = 20; // Increased attempts
+
+                        find_position: do {
+                            newLeft = Math.floor(Math.random() * (maxLeftPosition - borderBuffer + 1)) + borderBuffer / 2; // ensure it's not stuck at 0
+                            newLeft = Math.max(borderBuffer / 2, Math.min(newLeft, maxLeftPosition)); // Clamp within bounds
+
+                            let overlaps = false;
+                            for (const pos of currentEnemyPositions) {
+                                if (pos.element !== enemy) {
+                                    // Simplified and corrected overlap check
+                                    if (Math.abs(newLeft - pos.left) < (game.enemyWidth + game.requiredGap)) {
+                                        overlaps = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!overlaps) break find_position;
+                            attempts++;
+                        } while (attempts < maxAttempts);
+
+                        $enemy.css('left', newLeft + 'px');
+
+                        const randomImgSrc = game.assets.enemyCars[Math.floor(Math.random() * game.assets.enemyCars.length)];
+                        $enemy.css('backgroundImage', `url('${randomImgSrc}')`);
+                        const img = new Image(); img.onerror = () => $enemy.css('backgroundColor', 'rgba(0,0,255,0.5)'); img.src = randomImgSrc;
+
+                        // Update enemy speed: use game.enemyBaseSpeed (level-adjusted) + small variation
+                        let baseSpeedForEnemy = game.enemyBaseSpeed + (Math.random() * 0.5 - 0.25); // slight variation
+                        let maxEnemySpeed = game.speed * 1.6; // Cap individual enemy speed relative to overall game speed
+                        $enemy.data('speed', Math.min(baseSpeedForEnemy, maxEnemySpeed));
+                    }
+
+                    let speed = parseFloat($enemy.data('speed')) || game.enemyBaseSpeed;
+                    $enemy.css('top', (currentTop + speed) + 'px');
+                });
+            };
+
+            // --- Player Movement ---
+            const movePlayer = () => {
+                if (!player.element) return;
+                const $playerElem = $(player.element);
+                const roadRect = $game[0].getBoundingClientRect();
+                const borderBuffer = 10; // Buffer from edge of game container
+                const maxPlayerX = roadRect.width - player.width - borderBuffer;
+
+                if (game.keys.ArrowLeft && player.x > borderBuffer) player.x -= player.speed;
+                if (game.keys.ArrowRight && player.x < maxPlayerX) player.x += player.speed;
+                player.x = Math.max(borderBuffer, Math.min(player.x, maxPlayerX)); // Ensure player stays within buffered area
+
+                $playerElem.css({ 'left': player.x + 'px', 'top': (roadRect.height - player.height - 20) + 'px' });
+                player.y = roadRect.height - player.height - 20;
+            };
+
+            // --- Game Loop ---
+            const gameLoop = timestamp => {
+                if (!player.start) return;
+
+                moveLines();
+                moveEnemies();
+                movePlayer();
+
+                // Gradually increase difficulty (overall game speed) within a level
+                game.speed += 0.001; // Slower gradual increase, levels make bigger jumps
+                game.lineSpeed = game.speed * 1.5; // Line speed depends on current game.speed
+                // Note: individual enemy speeds are based on game.enemyBaseSpeed (level-based) and game.speed (for cap)
+
+                game.animationId = requestAnimationFrame(gameLoop);
+            };
+
+            // --- Scoring System & Leveling ---
+            const updateScore = () => {
+                if (!player.start) return;
+                player.score++;
+
+                if (player.score >= game.currentLevelScoreTarget && game.level < game.maxLevel) {
+                    game.level++;
+                    game.currentLevelScoreTarget += game.levelScoreMultiplier;
+                    console.log(`Level Up! Reached Level ${game.level}. Next level at ${game.currentLevelScoreTarget}. Game Speed: ${game.speed.toFixed(2)}, EnemyBaseSpeed: ${game.enemyBaseSpeed.toFixed(2)}`);
+
+                    game.speed += game.speedIncrementPerLevel; // Boost overall game speed
+                    game.enemyBaseSpeed += game.enemySpeedIncrementPerLevel; // Boost base speed for enemies
+                    // game.lineSpeed is updated in gameLoop based on game.speed
+                }
+                $scoreBoard.text(`Score: ${player.score} Lvl: ${game.level}`);
+
+                if (player.score > game.highScore) {
+                    game.highScore = player.score;
+                    $highScoreBoard.text(`High Score: ${game.highScore}`);
+                }
+            };
+
+            // --- Game Start/Reset ---
+            async function startGame() {
+                if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
+                    try { await Tone.start(); } catch (e) {
+                        console.error("Error starting AudioContext:", e);
+                        game.isMuted = true; $muteButton.text('🔇').prop('disabled', true);
+                    }
+                }
+                if (typeof Tone !== 'undefined' && Tone.context.state === 'running') initSounds();
+
+                $startScreen.addClass('hidden'); $endScreen.addClass('hidden'); $gameArea.empty().removeClass('hidden');
+
+                player.start = true; player.score = 0;
+                game.keys = { ArrowLeft: false, ArrowRight: false }; // Reset keys
+
+                // Reset level and difficulty parameters
+                game.level = 1;
+                game.speed = game.initialSpeed;
+                game.enemyBaseSpeed = game.initialSpeed; // Reset base enemy speed to initial game speed
+                game.lineSpeed = game.speed * 1.5;
+                game.currentLevelScoreTarget = game.levelScoreMultiplier;
+
+                $scoreBoard.text(`Score: 0 Lvl: ${game.level}`);
+                game.highScore = localStorage.getItem('carGameHighScore') || 0;
+                $highScoreBoard.text(`High Score: ${game.highScore}`);
+                $newHighScoreMsg.addClass('hidden');
+
+                const containerWidth = $game.width(); const containerHeight = $game.height();
+                const borderBuffer = 10; // For enemy placement
+                const maxEnemyLeft = containerWidth - game.enemyWidth - borderBuffer;
+
+                for (let i = 0; i < game.numberOfLines; i++) {
+                    $('<div>').addClass('road-line').css({ top: (i * (containerHeight / game.numberOfLines)) + 'px', left: '50%', transform: 'translateX(-50%)' }).appendTo($gameArea);
+                }
+
+                player.element = $('<div>').addClass('car').css('backgroundImage', `url('${game.assets.playerCar}')`).appendTo($gameArea)[0];
+                const playerImg = new Image(); playerImg.onerror = () => $(player.element).css('backgroundColor', 'rgba(255,0,0,0.5)'); playerImg.src = game.assets.playerCar;
+                player.x = (containerWidth - player.width) / 2; player.y = containerHeight - player.height - 20;
+                $(player.element).css({ left: player.x + 'px', top: player.y + 'px' });
+
+                let initialEnemyPositions = []; // Stores left positions of initially placed enemies
+                for (let i = 0; i < game.numberOfEnemies; i++) {
+                    const enemyImgSrc = game.assets.enemyCars[Math.floor(Math.random() * game.assets.enemyCars.length)];
+                    const $enemy = $('<div>').addClass('enemy').css('backgroundImage', `url('${enemyImgSrc}')`);
+                    const enemyImg = new Image(); enemyImg.onerror = () => $enemy.css('backgroundColor', 'rgba(0,0,255,0.5)'); enemyImg.src = enemyImgSrc;
+
+                    let newLeft; let attempts = 0;
+                    do {
+                        newLeft = Math.floor(Math.random() * (maxEnemyLeft - borderBuffer + 1)) + borderBuffer / 2;
+                        newLeft = Math.max(borderBuffer / 2, Math.min(newLeft, maxEnemyLeft));
+                        let overlaps = false;
+                        for (const pos of initialEnemyPositions) { // pos is a 'left' value
+                            if (Math.abs(newLeft - pos) < (game.enemyWidth + game.requiredGap)) {
+                                overlaps = true; break;
+                            }
+                        }
+                        if (!overlaps) break; attempts++;
+                    } while (attempts < 15); // Max attempts for initial placement
+
+                    initialEnemyPositions.push(newLeft);
+
+                    $enemy.css({
+                        left: newLeft + 'px',
+                        top: -(i * (containerHeight / (game.numberOfEnemies + 1)) + Math.random() * 100 + 150) + 'px' // Spread out initial vertical spawns
+                    }).data('speed', game.enemyBaseSpeed + (Math.random() * 0.5 - 0.25)) // Initial speed based on game.enemyBaseSpeed
+                        .appendTo($gameArea);
+                }
+
+                clearInterval(game.scoreInterval); game.scoreInterval = setInterval(updateScore, 100);
+                if (!game.isMuted && game.sound.engine && typeof Tone !== 'undefined') {
+                    if (Tone.Transport.state !== "started") Tone.Transport.start();
+                    game.sound.engine.start(0);
+                }
+                cancelAnimationFrame(game.animationId); game.animationId = requestAnimationFrame(gameLoop);
+            }
+
+            // --- Game End ---
+            function endGame() {
+                if (!player.start) return;
+                player.start = false;
+                cancelAnimationFrame(game.animationId); clearInterval(game.scoreInterval);
+                playCrashSound(); if (game.sound.engine) game.sound.engine.stop();
+
+                $finalScore.text(`Your Score: ${player.score}`);
+                $finalLevel.text(game.level); // Show level reached on end screen
+                if (player.score > parseInt(game.highScore)) { // Ensure highScore is number for comparison
+                    game.highScore = player.score;
+                    localStorage.setItem('carGameHighScore', game.highScore);
+                    $highScoreBoard.text(`High Score: ${game.highScore}`);
+                    $newHighScoreMsg.removeClass('hidden');
+                } else {
+                    $newHighScoreMsg.addClass('hidden');
+                }
+                $endScreen.removeClass('hidden');
+            }
+
+            // --- Initialize ---
+            const init = () => {
+                if (typeof Tone === 'undefined') $muteButton.text('🔇').prop('disabled', true);
+                game.highScore = parseInt(localStorage.getItem('carGameHighScore')) || 0; // Ensure high score is loaded as number
+                $highScoreBoard.text(`High Score: ${game.highScore}`);
+                $endScreen.addClass('hidden');
+                setupEventListeners();
+            };
+            init();
+        });
+    </script>
+</body>
+
+</html>
