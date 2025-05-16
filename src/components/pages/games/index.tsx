@@ -27,7 +27,7 @@ export default function GamesPage() {
       description: "Car Run is a game which is made with only HTML,CSS,JAVA script. In this game the player has to move the car with ← →. Also you have to notice that your car doesn't collide with other cars else the game will end.",
     },
     {
-      label: "TicTacToe",
+      label: "Tic Tac Toe",
       href: "/games/tictactoe/index.html",
       description:
         "Tic-tac-toe, noughts and crosses, or Xs and Os is a paper-and-pencil game for two players who take turns marking the spaces in a three-by-three grid with X or O. The player who succeeds in placing three of their marks in a horizontal, vertical, or diagonal row is the winner. But here you can play it with your freinds as it is a two player game.",

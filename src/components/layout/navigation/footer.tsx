@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Github, Twitter, Instagram } from "lucide-react";
 import { Logo } from "./logo";
-import {subscribeNewsletter} from "@/lib/hooks/subscriber";
+import { subscribeNewsletter } from "@/lib/hooks/subscriber";
 
 export function Footer() {
   const [email, setEmail] = useState("");
@@ -20,15 +20,20 @@ export function Footer() {
     }
 
     startTransition(async () => {
-      try {
-        const formData = new FormData();
-        formData.set("email", email);
-        await subscribeNewsletter(formData);
-        toast.success("Subscribed successfully!");
-        setEmail("");
-      } catch (error: any) {
-        toast.error(error.message || "Subscription failed.");
-      }
+      const formData = new FormData();
+      formData.set("email", email);
+      await subscribeNewsletter(formData)
+        .then((res) => {
+          if (res.success) {
+            toast.success("Subscribed successfully!");
+            setEmail("");
+          } else {
+            toast.error(res.error || "Subscription failed.");
+          }
+        })
+        .catch(() => {
+          toast.error("Unexpected error. Please try again later.");
+        });
     });
   };
 
@@ -189,7 +194,10 @@ export function Footer() {
             <p className="mt-2 text-sm text-muted-foreground">
               Stay updated with our latest games and features.
             </p>
-            <form onSubmit={handleSubmit} className="mt-4 flex max-w-sm space-x-2">
+            <form
+              onSubmit={handleSubmit}
+              className="mt-4 flex max-w-sm space-x-2"
+            >
               <input
                 name="email"
                 type="email"
