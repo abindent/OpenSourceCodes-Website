@@ -246,12 +246,12 @@ export function Navbar() {
             <DrawerHeader>
               <DrawerTitle className="flex items-center justify-between p-4">
                 <Logo />
-                <DrawerClose className="rounded-full border-2 border-white/20 p-3">  
-                  <X className="h-6 w-6 text-white" />
+                <DrawerClose className="rounded-full border-[3.75px] border-white/20 p-[9px]">  
+                  <X className="h-3.5 w-3.5 text-white" />
                 </DrawerClose>
               </DrawerTitle>
             </DrawerHeader>
-            <nav className="px-4 py-6">
+            <nav className="px-4 py-6 overflow-y-scroll">
               <SafeLink
                 href="/"
                 onClick={toggleMenu}
