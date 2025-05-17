@@ -17,12 +17,12 @@ export default function GamesPage() {
   
   const gamesMenu: GameMenuItemData[] = [
     {
-      label: "Douse Wildfire",
+      label: "Douse Wildfire (PC Only)",
       href: "/games/dousewildfire/index.html",
       description: 'WildFire is a game which is made with only HTML,CSS,JAVA script. In this game the player has to save the aeorplane from the wildfire by pressing "Spacebar". And also to save the jungele from this wildfire by pressing "Down Arrow". But if the plane collides with the fire then thegame will be over. Also the score will be shown there.',
     },
     {
-      label: "Car Run",
+      label: "Car Run (PC Only)",
       href: "/games/carrun/index.html",
       description: "Car Run is a game which is made with only HTML,CSS,JAVA script. In this game the player has to move the car with ← →. Also you have to notice that your car doesn't collide with other cars else the game will end.",
     },
