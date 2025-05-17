@@ -53,7 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const clickedCell = event.target;
         const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
 
-        if (board[clickedCellIndex] !== '' || !gameActive) {
+        if (board[clickedCellIndex] !== '' || !gameActive || (isAiOpponent && currentPlayer === 'O')) {
+            // If AI is opponent and it's AI's turn, human cannot click.
             return;
         }
 
@@ -106,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             statusDisplay.textContent = `Player ${currentPlayer} wins!`;
             gameActive = false;
             if (winningLineData) {
-                 drawStrikeLine(winningLineData.class);
+                drawStrikeLine(winningLineData.class);
             }
             boardElement.classList.add('game-over'); 
             return;
@@ -142,17 +143,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const minimax = (boardState, depth, isMaximizing, alpha = -Infinity, beta = Infinity) => {
-        if (checkWinner(boardState, 'O')) return 100 - depth; 
-        if (checkWinner(boardState, 'X')) return depth - 100; 
-        if (!boardState.includes('')) return 0; 
+        if (checkWinner(boardState, 'O')) return 100 - depth; // AI (O) wins
+        if (checkWinner(boardState, 'X')) return depth - 100; // Human (X) wins
+        if (!boardState.includes('')) return 0; // Draw
 
-        if (depth > 7) return evaluateBoard(boardState); // Depth limit for performance
+        if (depth > 7) return evaluateBoard(boardState); // Depth limit for performance in complex states
 
         const availableMoves = getAvailableMoves(boardState);
 
-        if (isMaximizing) {
+        if (isMaximizing) { // AI's turn (O) - wants to maximize score
             let bestScore = -Infinity;
-            const sortedMoves = sortMovesForMaximizer(boardState, availableMoves.slice()); // Use a copy for sorting
+            const sortedMoves = sortMovesForMaximizer(boardState, availableMoves.slice());
             
             for (const move of sortedMoves) {
                 boardState[move] = 'O'; 
@@ -160,12 +161,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 boardState[move] = ''; 
                 bestScore = Math.max(score, bestScore);
                 alpha = Math.max(alpha, bestScore);
-                if (beta <= alpha) break; 
+                if (beta <= alpha) break; // Alpha-beta pruning
             }
             return bestScore;
-        } else {
+        } else { // Human's turn (X) - wants to minimize score (from AI's perspective)
             let bestScore = Infinity;
-            const sortedMoves = sortMovesForMinimizer(boardState, availableMoves.slice()); // Use a copy for sorting
+            const sortedMoves = sortMovesForMinimizer(boardState, availableMoves.slice());
 
             for (const move of sortedMoves) {
                 boardState[move] = 'X'; 
@@ -173,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 boardState[move] = ''; 
                 bestScore = Math.min(score, bestScore);
                 beta = Math.min(beta, bestScore);
-                if (beta <= alpha) break; 
+                if (beta <= alpha) break; // Alpha-beta pruning
             }
             return bestScore;
         }
@@ -181,12 +182,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const evaluateBoard = (boardState) => {
         let score = 0;
-        const lines = winningConditions.map(wc => wc.combo); // Get just the combo arrays
+        const lines = winningConditions.map(wc => wc.combo); 
     
         for (const line of lines) {
-            const [a, b, c] = line.map(idx => boardState[idx]); // Get 'X', 'O', or ''
-            const oCount = (a === 'O') + (b === 'O') + (c === 'O'); // Count 'O's
-            const xCount = (a === 'X') + (b === 'X') + (c === 'X'); // Count 'X's
+            const [a, b, c] = line.map(idx => boardState[idx]); 
+            const oCount = (a === 'O') + (b === 'O') + (c === 'O'); 
+            const xCount = (a === 'X') + (b === 'X') + (c === 'X'); 
     
             if (oCount === 2 && xCount === 0) score += 10;  // AI has 2 in a row with an empty spot
             else if (oCount === 1 && xCount === 0) score += 1;   // AI has 1 in a row with two empty spots
@@ -195,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     
         if (boardState[4] === 'O') score += 3; // Center bonus for AI
-        if (boardState[4] === 'X') score -= 3; // Center bonus for Human (means AI should avoid this)
+        if (boardState[4] === 'X') score -= 3; // Center penalty if Human has it
         
         const corners = [0, 2, 6, 8];
         corners.forEach(corner => {
@@ -211,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const scoreA = evaluateBoard(tempBoardA);
             const tempBoardB = [...boardState]; tempBoardB[b] = 'O';
             const scoreB = evaluateBoard(tempBoardB);
-            return scoreB - scoreA; // Descending for maximizer
+            return scoreB - scoreA; // Descending for maximizer (higher score is better)
         });
     };
     
@@ -221,26 +222,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const scoreA = evaluateBoard(tempBoardA);
             const tempBoardB = [...boardState]; tempBoardB[b] = 'X';
             const scoreB = evaluateBoard(tempBoardB);
-            return scoreA - scoreB; // Ascending for minimizer
+            return scoreA - scoreB; // Ascending for minimizer (lower score is better for AI if human plays optimally)
         });
     };
 
-    const findBestMove = () => {
+    const findBestMove = () => { // Used by Medium and Unbeatable AI
         const openingBook = {
-            ",,,,,,,,": 4, "X,,,,,,,,": 4, ",,X,,,,,,": 4, ",,,,,,X,,": 4, ",,,,,,,,X": 4,
-            ",,,,X,,,,": 0, // If human takes center, AI takes a corner
-            // Simple responses to common human center + corner plays
-            "X,,,O,,,,": 2, // Human: 0, AI: 4 -> AI plays 2 (or 6, 8)
-            ",,X,O,,,,": 0, // Human: 2, AI: 4 -> AI plays 0 (or 6, 8)
-            ",,,,O,,X,": 0, // Human: 6, AI: 4 -> AI plays 0 (or 2, 8)
-            ",,,,O,,,X": 2, // Human: 8, AI: 4 -> AI plays 2 (or 0, 6)
+            ",,,,,,,,": 4, // Empty board: take center
+            "X,,,,,,,,": 4, ",X,,,,,,,": 4, ",,X,,,,,,": 4, ",,,X,,,,,": 4, // Human corner/side, AI center
+            ",,,,X,,,,": 0, // Human center: AI takes a corner (e.g., 0)
+            "X,,,O,X,,,": 2, 
+            "X,X,O,O,,,,": 6, 
         };
         const boardSignature = board.join(",");
         if (openingBook[boardSignature] !== undefined && board[openingBook[boardSignature]] === '') {
             return openingBook[boardSignature];
         }
 
-        // Check for immediate win for AI
+        // Check for immediate win for AI (O)
         for (const move of getAvailableMoves(board)) {
             board[move] = 'O';
             if (checkWinner(board, 'O')) {
@@ -248,11 +247,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             board[move] = '';
         }
-        // Check for immediate block for Human
+        // Check for immediate block for Human (X)
         for (const move of getAvailableMoves(board)) {
             board[move] = 'X';
             if (checkWinner(board, 'X')) {
-                board[move] = ''; return move;
+                board[move] = ''; return move; // Block this move
             }
             board[move] = '';
         }
@@ -261,108 +260,156 @@ document.addEventListener('DOMContentLoaded', () => {
         let move = null;
         const availableMoves = getAvailableMoves(board);
         
-        // Prioritize center, then corners, then sides
         const strategicMoveOrder = [4, 0, 2, 6, 8, 1, 3, 5, 7].filter(m => availableMoves.includes(m));
 
         for (const currentMove of strategicMoveOrder) {
-            board[currentMove] = 'O';
-            const score = minimax(board, 0, false);
-            board[currentMove] = '';
+            board[currentMove] = 'O'; 
+            const score = minimax(board, 0, false); 
+            board[currentMove] = ''; 
             if (score > bestScore) {
                 bestScore = score;
                 move = currentMove;
             }
         }
-        return move !== null ? move : availableMoves[0]; // Fallback if no move found (should not happen)
-    };
-
-    const aiMove = () => {
-        if (!gameActive || currentPlayer !== 'O') return;
-
-        let moveIndex;
-        const difficulty = aiDifficultySelect.value; // Get current difficulty
-
-        switch (difficulty) {
-            case 'easy':
-                moveIndex = Math.random() < 0.3 ? findBestMove() : getWeightedRandomMove();
-                break;
-            case 'medium':
-                moveIndex = Math.random() < 0.7 ? findBestMove() : getWeightedRandomMove();
-                break;
-            case 'unbeatable':
-            default:
-                moveIndex = findBestMove();
-                break;
-        }
-        
-        if (moveIndex !== null && board[moveIndex] === '') {
-            const aiCellElement = document.querySelector(`.cell[data-index='${moveIndex}']`);
-            makeMove(aiCellElement, moveIndex, 'O');
-        } else {
-            // Fallback if something went wrong, pick any available spot
-            const available = getAvailableMoves(board);
-            if (available.length > 0) {
-                 const fallbackMoveIndex = available[Math.floor(Math.random() * available.length)];
-                 const aiCellElement = document.querySelector(`.cell[data-index='${fallbackMoveIndex}']`);
-                 makeMove(aiCellElement, fallbackMoveIndex, 'O');
-            }
-        }
+        return move !== null ? move : availableMoves[0]; 
     };
     
-    const findImmediateWinOrBlock = (player) => { // Player is 'O' for win, 'X' for block
-        const opponent = player === 'O' ? 'X' : 'O';
-        for (const move of getAvailableMoves(board)) {
-            board[move] = player; // Try making a move for 'player'
+    const findImmediateWinOrBlock = (player) => { // player is 'O' for AI win, 'X' for Human win (to block)
+        const availableMoves = getAvailableMoves(board);
+        for (const move of availableMoves) {
+            board[move] = player; 
             if (checkWinner(board, player)) {
-                board[move] = ''; return move; // This move wins for 'player'
+                board[move] = ''; 
+                return move; 
             }
-            board[move] = ''; // Undo
+            board[move] = ''; 
         }
         return null;
     };
         
-    const getWeightedRandomMove = () => {
+    const getWeightedRandomMove = () => { // Used by Medium AI
         const availableMoves = getAvailableMoves(board);
         if (availableMoves.length === 0) return null;
         
-        // Check for immediate win or block first even in weighted random
-        let immediateMove = findImmediateWinOrBlock('O'); // Try to win
+        let immediateMove = findImmediateWinOrBlock('O'); 
         if (immediateMove !== null) return immediateMove;
-        immediateMove = findImmediateWinOrBlock('X'); // Try to block
+        immediateMove = findImmediateWinOrBlock('X'); 
         if (immediateMove !== null) return immediateMove;
 
         const weightedMoves = availableMoves.map(move => {
             let weight = 1; 
-            if (move === 4) weight += 4; // Center
-            if ([0, 2, 6, 8].includes(move)) weight += 2; // Corners
+            if (move === 4) weight += 4; 
+            if ([0, 2, 6, 8].includes(move)) weight += 2; 
             
-            // Check potential lines
             for (const { combo } of winningConditions) {
                 if (combo.includes(move)) {
-                    const lineCells = combo.map(idx => board[idx]);
+                    const lineCells = combo.map(idx => idx === move ? 'O' : board[idx]); 
                     const oCount = lineCells.filter(c => c === 'O').length;
                     const xCount = lineCells.filter(c => c === 'X').length;
-                    if (oCount === 1 && xCount === 0) weight += 2; // One O, no X
-                    if (oCount === 0 && xCount === 1) weight += 1; // One X, no O (less important to take but good)
+
+                    if (oCount === 2 && xCount === 0) weight += 5; 
+                    else if (oCount === 1 && xCount === 0) weight += 2; 
+                    
+                    const tempBoardBlock = [...board];
+                    tempBoardBlock[move] = 'X'; 
+                     if (checkWinner(tempBoardBlock, 'X')) { 
+                         weight += 4; 
+                     }
                 }
             }
             return { move, weight };
         });
         
         const totalWeight = weightedMoves.reduce((sum, { weight }) => sum + weight, 0);
-        if (totalWeight === 0) return availableMoves[Math.floor(Math.random() * availableMoves.length)]; // Pure random if no weights
+        if (totalWeight === 0) return availableMoves[Math.floor(Math.random() * availableMoves.length)];
 
         let randomVal = Math.random() * totalWeight;
         for (const { move, weight } of weightedMoves) {
             randomVal -= weight;
             if (randomVal <= 0) return move;
         }
-        return availableMoves[0]; // Fallback
+        return availableMoves[availableMoves.length - 1]; 
+    };
+
+    const aiMove = () => {
+        if (!gameActive || currentPlayer !== 'O') return;
+
+        let moveIndex = null;
+        const difficulty = aiDifficultySelect.value;
+        const availableMoves = getAvailableMoves(board);
+
+        if (availableMoves.length === 0) {
+            console.error("AI tried to move but no spots available.");
+            alert("AI tried to move but no spots available.")
+            return; 
+        }
+
+        switch (difficulty) {
+            case 'easy':
+                // Easy AI: Picks a purely random available spot.
+                // It does not check for wins or blocks.
+                moveIndex = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+                break;
+            case 'medium':
+                // Medium AI: First checks for immediate win or block.
+                // Then, 70% chance for minimax, 30% for weighted random.
+                const aiWinningMoveMed = findImmediateWinOrBlock('O');
+                if (aiWinningMoveMed !== null && board[aiWinningMoveMed] === '') {
+                    moveIndex = aiWinningMoveMed;
+                } else {
+                    const humanWinningMoveToBlockMed = findImmediateWinOrBlock('X');
+                    if (humanWinningMoveToBlockMed !== null && board[humanWinningMoveToBlockMed] === '') {
+                        moveIndex = humanWinningMoveToBlockMed;
+                    } else {
+                        if (Math.random() < 0.70) {
+                            moveIndex = findBestMove();
+                        } else {
+                            moveIndex = getWeightedRandomMove();
+                        }
+                    }
+                }
+                break;
+            case 'unbeatable':
+            default:
+                // Unbeatable AI: Always checks for immediate win/block first, then uses findBestMove (minimax).
+                // Note: findBestMove already includes win/block checks, but an explicit check here is fine.
+                const aiWinningMoveUnb = findImmediateWinOrBlock('O');
+                if (aiWinningMoveUnb !== null && board[aiWinningMoveUnb] === '') {
+                    moveIndex = aiWinningMoveUnb;
+                } else {
+                    const humanWinningMoveToBlockUnb = findImmediateWinOrBlock('X');
+                    if (humanWinningMoveToBlockUnb !== null && board[humanWinningMoveToBlockUnb] === '') {
+                        moveIndex = humanWinningMoveToBlockUnb;
+                    } else {
+                        moveIndex = findBestMove();
+                    }
+                }
+                break;
+        }
+        
+        // Fallback if moveIndex is somehow not set or invalid after difficulty logic
+        if (moveIndex === null || moveIndex === undefined || board[moveIndex] !== '') {
+            console.warn("AI move selection resulted in null or invalid state. Fallback to first available.", {moveIndex, board_val: board[moveIndex], difficulty});
+            if (availableMoves.length > 0) { // Ensure there are still available moves
+                 moveIndex = availableMoves[0]; // Pick the first available as a last resort
+            } else {
+                console.error("AI Fallback: No available moves left.");
+                return; // No move can be made
+            }
+        }
+
+        // Make the move
+        if (moveIndex !== null && board[moveIndex] === '') {
+            const aiCellElement = document.querySelector(`.cell[data-index='${moveIndex}']`);
+            makeMove(aiCellElement, moveIndex, 'O');
+        } else {
+            console.error("AI final attempt to move: moveIndex invalid or cell taken after all checks.", {moveIndex, cell_value: board[moveIndex]});
+        }
     };
 
     const drawStrikeLine = (strikeClass) => {
         if (!strikeClass) return;
-        strikeLine.className = ''; 
+        strikeLine.className = 'strike-line'; // Reset classes first
         strikeLine.classList.add(strikeClass); 
         strikeLine.style.display = 'block';
     };
@@ -370,46 +417,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetGame = () => {
         board = ['', '', '', '', '', '', '', '', ''];
         gameActive = true;
-        currentPlayer = 'X';
+        currentPlayer = 'X'; 
         isAiOpponent = gameModeSelect.value === 'ai';
-        // aiDifficulty is already updated by its event listener
+        aiDifficulty = aiDifficultySelect.value; 
 
         statusDisplay.textContent = `Player ${currentPlayer}'s turn`;
         boardElement.classList.remove('game-over', 'ai-thinking');
 
         cells.forEach(cell => {
-            cell.textContent = ''; // Clear any residual text (though hidden by CSS)
+            cell.textContent = ''; 
             cell.classList.remove('X', 'O');
             cell.style.pointerEvents = 'auto'; 
         });
 
-        strikeLine.className = ''; 
+        strikeLine.className = 'strike-line'; 
         strikeLine.style.display = 'none'; 
 
-        // Use the direct reference to difficultyContainer
-        difficultyContainer.style.display = isAiOpponent ? 'flex' : 'none';
-
-        if (isAiOpponent && currentPlayer === 'O') { 
-            boardElement.classList.add('ai-thinking');
-            setTimeout(() => {
-                aiMove();
-                boardElement.classList.remove('ai-thinking');
-            }, 500);
-        }
+        updateDifficultyVisibility(); 
     };
 
     gameModeSelect.addEventListener('change', (event) => {
         isAiOpponent = event.target.value === 'ai';
-        // Visibility of AI difficulty is handled by its own listener now.
         resetGame(); 
     });
     
     aiDifficultySelect.addEventListener('change', (event) => {
-        aiDifficulty = event.target.value; // Update global aiDifficulty
-        // No need to reset game here if only difficulty changes, 
-        // unless desired. Current behavior resets on mode change.
-        // If a reset is desired on difficulty change mid-game:
-        // resetGame(); 
+        aiDifficulty = event.target.value;
+        resetGame(); 
     });
 
     cells.forEach(cell => cell.addEventListener('click', handleCellClick));
