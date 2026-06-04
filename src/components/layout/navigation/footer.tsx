@@ -3,7 +3,9 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Github, Twitter, Instagram } from "lucide-react";
+import { GithubIcon } from "@/components/icons/github-icon";
+import { XIcon } from "@/components/icons/x-icon";
+import { InstagramIcon } from "@/components/icons/instagram-icon";
 import { Logo } from "./logo";
 import { subscribeNewsletter } from "@/lib/hooks/subscriber";
 
@@ -55,7 +57,7 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground"
               >
-                <Github className="h-5 w-5" />
+                <GithubIcon className="h-5 w-5" />
                 <span className="sr-only">GitHub</span>
               </Link>
               <Link
@@ -64,7 +66,7 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground"
               >
-                <Twitter className="h-5 w-5" />
+                <XIcon className="h-5 w-5" />
                 <span className="sr-only">Twitter</span>
               </Link>
               <Link
@@ -73,7 +75,7 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground"
               >
-                <Instagram className="h-5 w-5" />
+                <InstagramIcon className="h-5 w-5" />
                 <span className="sr-only">Instagram</span>
               </Link>
             </div>

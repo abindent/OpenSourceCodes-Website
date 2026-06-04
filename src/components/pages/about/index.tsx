@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Code, Github, Globe, Users } from "lucide-react";
+import { ArrowRight, Code, Globe, Users } from "lucide-react";
+import { GithubIcon as Github } from "@/components/icons/github-icon";
 import { Button } from "@/components/ui/button";
 import {
   Card,

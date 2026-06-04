@@ -6,12 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Moon,
   Sun,
-  Github,
   Code,
   Users,
   BookOpen,
   ArrowRight,
 } from "lucide-react";
+import {GithubIcon as Github} from "@/components/icons/github-icon";
 import { useTheme } from "next-themes";
 import Image from "next/image";
 
